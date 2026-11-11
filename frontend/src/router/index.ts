@@ -1,65 +1,51 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { authRoutes } from '@/features/auth/routes'
+import { useAuth } from '@/features/auth/composables/useAuth'
+import { workspaceRoutes } from '@/features/workspace/routes'
 
 declare module 'vue-router' {
   interface RouteMeta {
     title?: string
-    /** Trang dùng khung thẻ chia đôi màn hình */
-    layout?: 'auth'
-    /** Vị trí khối màu tím trong khung */
+    /** Vị trí khối màu tím trong khung xác thực */
     panel?: 'left' | 'right'
+    /** Mục sidebar được tô sáng khi ở trang này */
+    nav?: string
     /** Chỉ dành cho người chưa đăng nhập */
     guestOnly?: boolean
     requiresAuth?: boolean
+    /** Màn hình dạng ứng dụng chiếm trọn vùng nội dung (không padding, tự cuộn bên trong) */
+    fill?: boolean
+    /** Khoá giữ component khi chuyển giữa các route cùng một màn */
+    view?: string
   }
 }
+
+export const HOME_ROUTE = { name: 'overview' } as const
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', redirect: { name: 'login' } },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { title: 'Đăng nhập', layout: 'auth', panel: 'right', guestOnly: true },
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/RegisterView.vue'),
-      meta: { title: 'Đăng kí', layout: 'auth', panel: 'left', guestOnly: true },
-    },
-    {
-      path: '/forgot-password',
-      name: 'forgot-password',
-      component: () => import('@/views/ForgotPasswordView.vue'),
-      meta: { title: 'Quên mật khẩu', layout: 'auth', panel: 'right', guestOnly: true },
-    },
-    {
-      path: '/reset-password',
-      name: 'reset-password',
-      component: () => import('@/views/ResetPasswordView.vue'),
-      meta: { title: 'Đặt mật khẩu mới', layout: 'auth', panel: 'right' },
-    },
-    {
-      path: '/home',
-      name: 'home',
-      component: () => import('@/views/HomeView.vue'),
-      meta: { title: 'Trang chủ', requiresAuth: true },
-    },
-    { path: '/:pathMatch(.*)*', redirect: { name: 'login' } },
+    { path: '/', redirect: HOME_ROUTE },
+    ...authRoutes,
+    ...workspaceRoutes,
+    // Đường dẫn cũ của bản demo
+    { path: '/home', redirect: HOME_ROUTE },
+    { path: '/:pathMatch(.*)*', redirect: HOME_ROUTE },
   ],
+  scrollBehavior: () => ({ top: 0 }),
 })
 
 router.beforeEach((to) => {
   const { isAuthenticated } = useAuth()
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
+
+  if (to.matched.some((record) => record.meta.requiresAuth) && !isAuthenticated.value) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+
   if (to.meta.guestOnly && isAuthenticated.value) {
-    return { name: 'home' }
+    return HOME_ROUTE
   }
+
   return true
 })
 
