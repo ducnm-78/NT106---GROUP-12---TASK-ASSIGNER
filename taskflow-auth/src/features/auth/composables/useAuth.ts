@@ -6,6 +6,7 @@ const SESSION_KEY = 'taskflow:session'
 
 /** Trạng thái dùng chung toàn app (singleton theo module). */
 const session = shallowRef<AuthSession | null>(null)
+let unsubscribeFromAuthService: (() => void) | undefined
 
 function isAuthSession(value: unknown): value is AuthSession {
   if (!value || typeof value !== 'object') return false
@@ -53,8 +54,27 @@ function saveSession(next: AuthSession, remember: boolean): void {
 }
 
 /** Gọi một lần khi khởi động app, trước khi router chạy guard. */
-export function restoreSession(): void {
-  session.value = readSession(localStorage) ?? readSession(sessionStorage)
+export async function restoreSession(): Promise<void> {
+  const storedSession = readSession(localStorage) ?? readSession(sessionStorage)
+  if (!authService.restoreSession) {
+    session.value = storedSession
+    return
+  }
+
+  unsubscribeFromAuthService?.()
+  try {
+    unsubscribeFromAuthService = authService.subscribe?.((next) => {
+      if (next) {
+        session.value = next
+      } else if (!session.value?.isGuest) {
+        clearStoredSession()
+        session.value = null
+      }
+    })
+    session.value = (await authService.restoreSession()) ?? (storedSession?.isGuest ? storedSession : null)
+  } catch {
+    session.value = storedSession?.isGuest ? storedSession : null
+  }
 }
 
 export function useAuth() {

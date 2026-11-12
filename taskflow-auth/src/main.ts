@@ -7,8 +7,11 @@ import '@fontsource-variable/inter'
 import '@fontsource-variable/montserrat'
 import './shared/styles/base.css'
 
-restoreSession()
 
-const app = createApp(App)
-app.use(router)
-void router.isReady().then(() => app.mount('#app'))
+void (async () => {
+  await restoreSession()
+  const app = createApp(App)
+  app.use(router)
+  await router.isReady()
+  app.mount('#app')
+})()

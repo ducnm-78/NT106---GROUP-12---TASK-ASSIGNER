@@ -83,7 +83,7 @@ src/
    │  ├─ views/               Login, Register, ForgotPassword, ResetPassword
    │  ├─ components/          FormField, BaseCheckbox, FormAlert
    │  ├─ composables/         useAuth (phiên đăng nhập), useForm, useCountdown
-   │  ├─ services/            AuthService, mockAuthService, httpAuthService
+│  ├─ services/            AuthService, mockAuthService, httpAuthService, supabaseAuthService
    │  ├─ utils/, types.ts, routes.ts, auth.css
    └─ workspace/              khu vực làm việc sau khi đăng nhập
       ├─ layouts/WorkspaceLayout.vue   sidebar + topbar, chỉ vùng nội dung cuộn
@@ -100,7 +100,7 @@ src/
 tests/unit/                   vitest: tasks.spec.ts, groups.spec.ts, calendar.spec.ts
 ```
 
-## Nối với API thật
+## Kết nối Supabase cho đăng ký/đăng nhập
 
 Mặc định app dùng `mockAuthService` (lưu dữ liệu giả trong trình duyệt). Để gọi backend:
 

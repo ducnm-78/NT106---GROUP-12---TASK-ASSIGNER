@@ -19,7 +19,10 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuth()
 
-const token = computed(() => (typeof route.query.token === 'string' ? route.query.token : ''))
+const token = computed(() => {
+  const value = route.query.token ?? route.query.token_hash
+  return typeof value === 'string' ? value : ''
+})
 const tokenState = ref<TokenState>('checking')
 
 const { values, errors, formError, submitting, touch, handleSubmit } = useForm<ResetPasswordForm>(
@@ -34,10 +37,6 @@ const { values, errors, formError, submitting, touch, handleSubmit } = useForm<R
 )
 
 onMounted(async () => {
-  if (!token.value) {
-    tokenState.value = 'invalid'
-    return
-  }
   try {
     tokenState.value = (await auth.verifyResetToken(token.value)) ? 'valid' : 'invalid'
   } catch {

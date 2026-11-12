@@ -7,6 +7,7 @@ import BaseCheckbox from '@/features/auth/components/BaseCheckbox.vue'
 import FormAlert from '@/features/auth/components/FormAlert.vue'
 import FormField from '@/features/auth/components/FormField.vue'
 import { useAuth } from '@/features/auth/composables/useAuth'
+import { authProvider } from '@/features/auth/services'
 import { useForm } from '@/features/auth/composables/useForm'
 import { getErrorMessage } from '@/features/auth/utils/errors'
 import { safeRedirect } from '@/features/auth/utils/redirect'
@@ -19,7 +20,7 @@ interface LoginForm {
 }
 
 const STATUS_MESSAGES: Record<string, string> = {
-  registered: 'Đã tạo tài khoản. Đăng nhập để bắt đầu.',
+  registered: 'Đã tạo tài khoản. Hãy xác nhận email trước khi đăng nhập.',
   'password-reset': 'Đã lưu mật khẩu mới. Đăng nhập bằng mật khẩu vừa đặt.',
 }
 
@@ -30,7 +31,7 @@ const auth = useAuth()
 const { values, errors, formError, submitting, touch, handleSubmit } = useForm<LoginForm>(
   { username: '', password: '', remember: true },
   {
-    username: [required('Nhập tên tài khoản hoặc email.')],
+    username: [required('Nhập email.')],
     password: [required('Nhập mật khẩu.')],
   },
 )
@@ -74,9 +75,9 @@ async function onGuestLogin(): Promise<void> {
     <form class="auth-form" novalidate @submit.prevent="onSubmit">
       <FormField
         v-model="values.username"
-        label="Tên tài khoản"
+        :label="authProvider === 'supabase' ? 'Email' : 'Tên tài khoản hoặc email'"
         name="username"
-        autocomplete="username"
+        :autocomplete="authProvider === 'supabase' ? 'email' : 'username'"
         autocapitalize="off"
         spellcheck="false"
         :error="errors.username"

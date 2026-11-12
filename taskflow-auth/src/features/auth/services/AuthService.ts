@@ -16,4 +16,6 @@ export interface AuthService {
   verifyResetToken(token: string): Promise<boolean>
   resetPassword(payload: ResetPasswordPayload): Promise<void>
   logout(token: string): Promise<void>
+  restoreSession?(): Promise<AuthSession | null>
+  subscribe?(listener: (session: AuthSession | null) => void): () => void
 }
